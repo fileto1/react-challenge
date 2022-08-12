@@ -10,7 +10,7 @@ In the project directory, you can run:
 Runs the app in the development mode.\
 Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
-### `npm start-api`
+### `npm run start-api`
 
 Runs the json-server in the local server.\
 Open [http://localhost:3001](http://localhost:3001) to access the data saved in the local file.

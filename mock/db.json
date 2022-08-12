@@ -1,3 +1,43 @@
 {
-    
+  "professions": [
+    {
+      "id": 1,
+      "name": "Desenvolvedor Back-end"
+    },
+    {
+      "id": 2,
+      "name": "Desenvolvedor Front-end"
+    },
+    {
+      "id": 3,
+      "name": "Desenvolvedor Mobile"
+    },
+    {
+      "id": 4,
+      "name": "Desenvolvedor Full-stack"
+    }
+  ],
+  "employees": [
+    {
+      "id": 1,
+      "name": "Jose",
+      "profession": 4,
+      "salary": 3200,
+      "active": false
+    },
+    {
+      "id": 2,
+      "name": "Paulo",
+      "profession": 3,
+      "salary": 4000,
+      "active": false
+    },
+    {
+      "profession": 1,
+      "active": false,
+      "name": "Guilherme",
+      "salary": 123,
+      "id": 4
+    }
+  ]
 }
