@@ -29,15 +29,15 @@
       "id": 2,
       "name": "Paulo",
       "profession": 3,
-      "salary": 4000,
+      "salary": 2800,
       "active": false
     },
     {
-      "profession": 1,
-      "active": false,
+      "id": 3,
       "name": "Guilherme",
-      "salary": 123,
-      "id": 4
+      "profession": 1,
+      "salary": 4700,
+      "active": true
     }
   ]
 }
