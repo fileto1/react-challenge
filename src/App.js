@@ -1,7 +1,7 @@
 import React from 'react';
 import { useEffect, useState } from 'react';
 import './App.css';
-import EmployeesTable from './components/EmployeesTable'
+import EmployeesTable from './components/EmployeesTable';
 
 function App() {
   const [employee, setEmployee] = useState({profession:'',active: false});
@@ -25,38 +25,56 @@ function App() {
   }, []);
 
   useEffect(() => {
-      updateEmployeesData()
+    const fetchData = async () => {
+      const response = await fetch('http://localhost:3001/employees');
+      const data = await response.json();
+      setEmployees(data);
+    }
+
+    fetchData()
+      .catch(console.error);
+
   }, []);
-
-  const updateEmployeesData = async () => {
-    const response = await fetch('http://localhost:3001/employees');
-    const data = await response.json();
-    setEmployees(data);
-  }
-
-  const deleteEmployee = (employeeToDelete) => {
-    fetch(`http://localhost:3001/employees/${employeeToDelete.id}`, {
-      method: 'DELETE',
-    }).then(() => {
-        const employeesWithoutRemovedOne = employees.filter(emp => emp.id !== employeeToDelete.id)
-        setEmployees(employeesWithoutRemovedOne);
-      })
-  }
 
   const createOrEditEmployee = () => {
     const url = isInEditMode ? `http://localhost:3001/employees/${employee.id}` : 'http://localhost:3001/employees';
-    fetch(url, {
-      method: isInEditMode ? 'PATCH' : 'POST',
-      headers: {
-        'Content-type': 'application/json',
-      },
-      body: JSON.stringify(employee)
-    }).then(() => {
-        updateEmployeesData();
-        cleanForm();
-        setIsInEditMode(false);
-      })
-      .catch(err => console.log(err));
+    const fetchData = async () => {
+      const response = await fetch(url, {
+        method: isInEditMode ? 'PATCH' : 'POST',
+        headers: {
+          'Content-type': 'application/json',
+        },
+        body: JSON.stringify(employee)
+      });
+      const data = await response.json();
+      if(isInEditMode) {
+        let updatedEmployees = employees.map((emp) => {
+          if(emp.id === data.id) {
+            emp = data;
+          }
+          return emp;
+        });
+        setEmployees(updatedEmployees);
+      } else {
+        setEmployees([...employees, data]);
+      }
+      cleanForm();
+      setIsInEditMode(false);
+    }
+    
+    fetchData()
+      .catch(console.error);
+  }
+
+  const deleteEmployee = (employeeToDelete) => {
+    const fetchData = async () => {
+      await fetch(`http://localhost:3001/employees/${employeeToDelete.id}`, {method: 'DELETE'});
+      const employeesWithoutRemovedOne = employees.filter(emp => emp.id !== employeeToDelete.id);
+      setEmployees(employeesWithoutRemovedOne);
+    }
+
+    fetchData()
+      .catch(console.error);
   }
 
   const handleSubmit = (event) => {
