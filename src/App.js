@@ -2,19 +2,22 @@ import React from 'react';
 import { useEffect, useState } from 'react';
 import './App.css';
 import EmployeesTable from './components/EmployeesTable';
+import { Formik, Form, Field, ErrorMessage } from 'formik';
+import * as Yup from 'yup';
+
+const initialValues = {
+  name: '',
+  salary: '',
+  profession: '',
+  active: false
+}
 
 function App() {
-  const [employee, setEmployee] = useState({profession:'',active: false});
+  const [formValues, setFormValues] = useState(null);
   const [employees, setEmployees] = useState([]);
   const [professions, setProfessions] = useState([]);
   const [isInEditMode, setIsInEditMode] = useState(false);
   const [buttonCreateLabel, setButtonCreateLabel] = useState('CRIAR');
-
-  //form inputs
-  const [name, setName] = useState('');
-  const [profession, setProfession] = useState({});
-  const [salary, setSalary] = useState('');
-  const [active, setActive] = useState(false);
 
   useEffect(()=> {
     ( async () => {
@@ -36,35 +39,6 @@ function App() {
 
   }, []);
 
-  const createOrEditEmployee = () => {
-    const url = isInEditMode ? `http://localhost:3001/employees/${employee.id}` : 'http://localhost:3001/employees';
-    const fetchData = async () => {
-      const response = await fetch(url, {
-        method: isInEditMode ? 'PATCH' : 'POST',
-        headers: {
-          'Content-type': 'application/json',
-        },
-        body: JSON.stringify(employee)
-      });
-      const data = await response.json();
-      if(isInEditMode) {
-        let updatedEmployees = employees.map((emp) => {
-          if(emp.id === data.id) {
-            emp = data;
-          }
-          return emp;
-        });
-        setEmployees(updatedEmployees);
-      } else {
-        setEmployees([...employees, data]);
-      }
-      cleanForm();
-      setIsInEditMode(false);
-    }
-    
-    fetchData()
-      .catch(console.error);
-  }
 
   const deleteEmployee = (employeeToDelete) => {
     const fetchData = async () => {
@@ -77,56 +51,15 @@ function App() {
       .catch(console.error);
   }
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    createOrEditEmployee();
-  }
-
-  const cleanForm = () => {
-    setName('');
-    setSalary('');
-    setActive(false);
-    setProfession();
-    setEmployee({});
-    setButtonCreateLabel('CRIAR');
-    cleanSelectedEmployees();
-    setIsInEditMode(false);
-  }
-
   const cleanSelectedEmployees = (id) => {
     employees.map(emp => emp.id !== id ? emp.selected = false : '');
-  }
-
-  const handleSelectChange = (event) => {
-    setProfession(event.target.value);
-    setEmployee({...employee, profession: Number(event.target.value)})
-  }
-
-  const handleChangeActive = (event) => {
-    setActive(event.target.checked);
-    setEmployee({...employee, active: event.target.checked})
-  }
-
-  const handleSalaryChange = (event) => {
-    setSalary(event.target.value);
-    setEmployee({...employee, salary: Number(event.target.value)})
-  }
-
-  const handleChangeName = (event) => {
-    setName(event.target.value);
-    setEmployee({...employee, name: event.target.value})
   }
 
   const editEmployee = (employeeReceived) => {
     cleanSelectedEmployees(employeeReceived.id);
     setButtonCreateLabel('ATUALIZAR');
-    setName(employeeReceived.name);
-    setSalary(employeeReceived.salary);
-    setActive(employeeReceived.active);
-    setProfession(employeeReceived.profession);
     setIsInEditMode(true);
-
-    setEmployee({id: employeeReceived.id, name: employeeReceived.name, salary: employeeReceived.salary, active: employeeReceived.active, profession: employeeReceived.profession});
+    setFormValues({id: employeeReceived.id, name: employeeReceived.name, salary: employeeReceived.salary, active: employeeReceived.active, profession: employeeReceived.profession});
   }
 
   const removeEmployee = (employeeReceived) => {
@@ -137,31 +70,100 @@ function App() {
     }
   }
 
+  const onSubmit = async (valuesFromForm) => {
+    const url = isInEditMode ? `http://localhost:3001/employees/${valuesFromForm.id}` : 'http://localhost:3001/employees';
+    console.log('values:', valuesFromForm);
+    const employeeToSave = {id: valuesFromForm.id, name: valuesFromForm.name, salary: valuesFromForm.salary, active: valuesFromForm.active, profession: Number(valuesFromForm.profession)}
+    const response = await fetch(url, {
+      method: isInEditMode ? 'PATCH' : 'POST',
+      headers: {
+        'Content-type': 'application/json',
+      },
+      body: JSON.stringify(employeeToSave)
+    });
+
+    if(response) {
+      const data = await response.json();
+      if(isInEditMode) {
+        let updatedEmployees = employees.map((emp) => {
+          if(emp.id === data.id) {
+            emp = data;
+          }
+          return emp;
+        });
+        setEmployees(updatedEmployees);
+      } else {
+        setEmployees([...employees, data]);
+      }
+      setIsInEditMode(false);
+    }
+  }
+
   return (
+
     <div className="App">
       <div>Cadastro de Funcionários</div>
-      <form onSubmit={handleSubmit}>
-        <input required value={name || ''} name="name" onChange={handleChangeName} placeholder="Nome"/>
-        <select required value={profession || ''} name="profession" onChange={handleSelectChange}>
-          <option value="" className="default_option">Profissão</option>
-          {professions.map(emp => (
-              <option key={emp.id} value={emp.id}>{emp.name}</option>
-            )
-          )}
-        </select>
-        <input required value={salary || ''} name="salary" onChange={handleSalaryChange} type="number" placeholder="Salário"/>
-        <label>
-          <input checked={active || false} name="active" onChange={handleChangeActive} type="checkbox"/>
-          Ativo
-        </label>
-        <div>
-          <button className='info' type="button" onClick={cleanForm}>CANCELAR</button>
-          <button className='success' type="submit">{buttonCreateLabel}</button>
-        </div>
-      </form>
+
+      <Formik
+        enableReinitialize={true}
+        initialValues={formValues || initialValues}
+        validationSchema={Yup.object({
+          name: Yup.string()
+            .min(2, 'Deve conter no mínimo 2 caracteres.')
+            .required('Nome é obrigatório.'),
+          profession: Yup.number()
+            .required('Profissão é obrigatório.'),
+          salary: Yup.number()
+            .required('Salário é obrigatório.'),
+        })}
+        onSubmit={(values, {resetForm}) => {
+          onSubmit(values);
+          resetForm();
+          setFormValues(null);
+        }}
+      >
+        {formik => (
+          <Form>
+            <div className="flex-block">
+              <div className="field-block">
+                <Field name="name" type="text" placeholder="Nome" />
+                <ErrorMessage name="name" />
+              </div>
+
+              <div className="field-block">
+                <Field name="profession" as="select">
+                  <option value="" className="default_option">Profissão</option>
+                  {professions.map(emp => (
+                      <option key={emp.id} value={emp.id}>{emp.name}</option>
+                    )
+                  )}
+                </Field>
+                <ErrorMessage name="profession" />
+              </div>
+
+              <div className="field-block">
+                <Field name="salary" type="number" placeholder="Salário" />
+                <ErrorMessage name="salary" />
+              </div>
+
+              <div className="margin-top-thin">
+                <Field name="active" type="checkbox" />
+                <label htmlFor="active">Ativo</label>
+              </div>
+            </div>
+
+              <button className='info' type="button" onClick={() => formik.resetForm()}>CANCELAR</button>
+              <button className='success' type="submit">{buttonCreateLabel}</button>
+
+          </Form>
+        )}
+
+      </Formik>
+
       <EmployeesTable employeesData={employees} editEmployeeCallBack={editEmployee} removeEmployeeCallBack={removeEmployee} />
     </div>
   );
 }
 
 export default App;
+

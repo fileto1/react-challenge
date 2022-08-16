@@ -52,3 +52,26 @@ form {
   border-bottom: 1px solid rgb(197, 195, 195);
   width: 70%;
 }
+
+.flex-block {
+  display: flex;
+  justify-content: center;
+}
+
+form .field-block {
+  display: flex;
+  flex-direction: column;
+  height: fit-content;
+  width: 200px;
+  min-height: 65px;
+
+  color: red;
+  font-size: 12px;
+  text-align: left;
+
+}
+
+.margin-top-thin {
+  margin-top: 10px;
+}
+
