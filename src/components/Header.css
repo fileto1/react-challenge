@@ -1,0 +1,33 @@
+.header {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    background-color: black;
+    align-items: flex-end;
+    color: rgb(0, 0, 0);
+}
+
+.navbar {
+    display: flex;
+    flex-direction: row;
+}
+
+.navbar-item:hover {
+    background-color: rgb(141, 140, 140);
+}
+
+.navbar-item {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-left: 30px;
+    color: inherit;
+    text-decoration: inherit;
+    text-transform: uppercase;
+    outline: none;
+    padding: 10px;
+    background-color: rgb(230, 230, 230);
+    border-radius: 5px;
+    margin-bottom: 5px;
+    margin-top: 5px;
+}
