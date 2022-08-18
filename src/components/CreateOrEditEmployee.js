@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { useParams, useNavigate } from "react-router-dom";
+import api from "../services/api";
 
 const initialValues = {
   name: "",
@@ -23,8 +24,8 @@ export default function CreateOrEditEmployee() {
 
   useEffect(() => {
     (async () => {
-      const response = await fetch("http://localhost:3001/professions");
-      const data = await response.json();
+      const response = await api.get("professions");
+      const data = await response.data;
       setProfessions(data);
     })();
   }, []);
@@ -32,8 +33,8 @@ export default function CreateOrEditEmployee() {
   useEffect(() => {
     if (id) {
       const fetchData = async () => {
-        const response = await fetch(`http://localhost:3001/employees/${id}`);
-        const data = await response.json();
+        const response = await api.get(`employees/${id}`);
+        const data = await response.data;
         editEmployee(data);
       };
 
@@ -54,9 +55,6 @@ export default function CreateOrEditEmployee() {
   };
 
   const onSubmit = async (valuesFromForm) => {
-    const url = isInEditMode
-      ? `http://localhost:3001/employees/${valuesFromForm.id}`
-      : "http://localhost:3001/employees";
     const employeeToSave = {
       id: valuesFromForm.id,
       name: valuesFromForm.name,
@@ -64,21 +62,26 @@ export default function CreateOrEditEmployee() {
       active: valuesFromForm.active,
       profession: Number(valuesFromForm.profession),
     };
-    const response = await fetch(url, {
-      method: isInEditMode ? "PATCH" : "POST",
-      headers: {
-        "Content-type": "application/json",
-      },
-      body: JSON.stringify(employeeToSave),
-    });
 
+    if (isInEditMode) {
+      updateEmployeeInApi(employeeToSave);
+    } else {
+      saveEmployeeInApi(employeeToSave);
+    }
+  };
+
+  const updateEmployeeInApi = async (employee) => {
+    const response = await api.put(`employees/${employee.id}`, employee);
     if (response) {
-      if (isInEditMode) {
-        setIsInEditMode(false);
-        navigateToListRoute();
-      } else {
-        setSuccessMessage(true);
-      }
+      setIsInEditMode(false);
+      navigateToListRoute();
+    }
+  };
+
+  const saveEmployeeInApi = async (employee) => {
+    const response = await api.post("employees", employee);
+    if (response) {
+      setSuccessMessage(true);
     }
   };
 

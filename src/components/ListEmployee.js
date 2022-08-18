@@ -4,6 +4,7 @@ import { RiPencilFill } from "react-icons/ri";
 import { IoMdTrash } from "react-icons/io";
 import "./ListEmployee.css";
 import { Link } from "react-router-dom";
+import api from "../services/api";
 
 function FindProfessionById(id) {
   switch (id) {
@@ -28,8 +29,8 @@ function ListEmployee() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const response = await fetch("http://localhost:3001/employees");
-      const data = await response.json();
+      const response = await api.get("employees");
+      const data = await response.data;
       setEmployees(data);
     };
 
@@ -56,13 +57,13 @@ function ListEmployee() {
 
   const deleteEmployee = (employeeToDelete) => {
     const fetchData = async () => {
-      await fetch(`http://localhost:3001/employees/${employeeToDelete.id}`, {
-        method: "DELETE",
-      });
-      const employeesWithoutRemovedOne = employees.filter(
-        (emp) => emp.id !== employeeToDelete.id
-      );
-      setEmployees(employeesWithoutRemovedOne);
+      const response = await api.delete(`employees/${employeeToDelete.id}`);
+      if (response) {
+        const employeesWithoutRemovedOne = employees.filter(
+          (emp) => emp.id !== employeeToDelete.id
+        );
+        setEmployees(employeesWithoutRemovedOne);
+      }
     };
 
     fetchData().catch(console.error);
